@@ -1,28 +1,42 @@
-# I have run this code locally, but against mysql 8.0, so errors might exist
-
 from DbConnector import DbConnector
 
-connection = DbConnector()
+def main():
+    connection = DbConnector()
 
-print('creating test table')
-connection.cursor.execute('CREATE TABLE `TestTable`(`id` int(11) PRIMARY KEY NOT NULL AUTO_INCREMENT)')
+    def create_table(table_name, definition):
+        query = f'CREATE TABLE IF NOT EXISTS {table_name} ({definition})'
+        connection.cursor.execute(query)
+        connection.commit()
+    
+    tables = {
+        'User': '''
+            id CHAR(3) PRIMARY KEY NOT NULL,
+            has_labels BOOLEAN NOT NULL
+        ''',
+        'Activity': '''
+            id INT PRIMARY KEY NOT NULL,
+            user_id CHAR(3) NOT NULL,
+            transportation_mode ENUM('walk', 'bike', 'bus', 'car', 'subway', 'train', 'airplane', 'boat', 'run', 'motorcycle', 'taxi') DEFAULT NULL,
+            start_date_time TEXT NOT NULL,
+            end_date_time TEXT NOT NULL,
+            FOREIGN KEY (user_id) REFERENCES User(id) ON DELETE CASCADE
+        ''',
+        'Trackpoint': '''
+            id INT PRIMARY KEY NOT NULL,
+            activity_id INT NOT NULL,
+            lat DOUBLE NOT NULL,
+            lon DOUBLE NOT NULL,
+            altitude DOUBLE,
+            date_days DOUBLE NOT NULL,
+            date_time DATETIME NOT NULL,
+            FOREIGN KEY (activity_id) REFERENCES Activity(id) ON DELETE CASCADE
+        ''',
+    }
 
-connection.cursor.execute('SHOW TABLES')
-# alternatively fetchone
-tables = connection.cursor.fetchall()
-print(tables)
+    for table_name, table_definition in tables.items():
+        create_table(table_name, table_definition)
+    
+    connection.close_connection()
 
-connection.commit()
-
-print('Deleting test tables')
-connection.cursor.execute('DROP TABLE `TestTable`')
-
-connection.commit()
-
-connection.cursor.execute('SHOW TABLES')
-# alternatively fetchone
-tables = connection.cursor.fetchall()
-print(tables)
-
-
-connection.close_connection()
+if __name__ == '__main__':
+    main()
