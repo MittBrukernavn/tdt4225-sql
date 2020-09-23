@@ -1,4 +1,5 @@
 from DbConnector import DbConnector
+from os import getcwd, walk
 
 def main():
     connection = DbConnector()
@@ -8,6 +9,7 @@ def main():
         connection.cursor.execute(query)
         connection.commit()
     
+    # table definitions
     tables = {
         'User': '''
             id CHAR(3) PRIMARY KEY NOT NULL,
@@ -33,9 +35,29 @@ def main():
         ''',
     }
 
+    # create the tables
     for table_name, table_definition in tables.items():
         create_table(table_name, table_definition)
     
+    working_directory = getcwd()
+
+    data_directory, user_ids, _ = next(walk(f'{working_directory}/dataset/Data'))
+
+    # sorting the user IDs makes it (much) easier to deal with has_labels
+    user_ids.sort()
+    
+    user_data = [[user_id, False] for user_id in user_ids]
+
+    with open(f'{working_directory}/dataset/labeled_ids.txt') as f:
+        for line in f:
+            assert line.strip() == user_data[int(line)][0]
+            user_data[int(line)][1] = True
+    
+    print(*user_data, sep='\n')
+    
+    connection.cursor.executemany('INSERT INTO User (id, has_labels) VALUES (%s, %s)', user_data)
+    connection.commit()
+
     connection.close_connection()
 
 if __name__ == '__main__':
