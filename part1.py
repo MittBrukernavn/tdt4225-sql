@@ -58,6 +58,15 @@ def main():
     connection.cursor.executemany('INSERT INTO User (id, has_labels) VALUES (%s, %s)', user_data)
     connection.commit()
 
+    # Insert activities:
+    activity_data = []
+    trackpoint_data = []
+    for [user_id, has_labels] in user_data:
+        pass
+
+
+    # Insert trackpoints:
+
     connection.close_connection()
 
 if __name__ == '__main__':
