@@ -97,11 +97,11 @@ def main():
                     assert end_date_and_time == f'{end_date} {end_time}' # Just making sure
                     transportation_mode = mode
                 activity_data.append([activity_id, user_id, transportation_mode, f'{start_date} {start_time}', f'{end_date} {end_time}'])
-                activity_id += 1
                 # activity data is dealt with - time to get trackpoint data
                 for line in lines:
                     lat, lon, _, alt, date_days, date, time = lines[0].strip().split(',')
                     trackpoint_data.append([activity_id, lat, lon, alt, date_days, f'{date} {time}'])
+                activity_id += 1
     t3 = t()
     print(f'Processing activity and trackpoints took {t3 - t2} seconds. Total time elapsed: {t3 - t0} seconds')
     # Insert activities:
