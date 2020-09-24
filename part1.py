@@ -1,9 +1,12 @@
 from DbConnector import DbConnector
 from os import getcwd, walk
+from time import time as t
+
 
 def main():
     connection = DbConnector()
-
+    t0 = t()
+    
     def create_table(table_name, definition):
         query = f'CREATE TABLE IF NOT EXISTS {table_name} ({definition})'
         connection.cursor.execute(query)
@@ -55,11 +58,13 @@ def main():
             user_data[int(line)][1] = True
     
     # print(*user_data, sep='\n')
-    print('Inserting users...')
+    t1 = t()
+    print(f'Inserting users. Time elapsed: {t1 - t0} seconds')
     connection.cursor.executemany('INSERT INTO User (id, has_labels) VALUES (%s, %s)', user_data)
     connection.commit()
-    print(len(user_data), 'users inserted')
-
+    t2 = t()
+    print(f'{len(user_data)} users inserted in {t2 - t1} seconds ({t2 - t1} total)')
+    print('Processing activity and trackpoint data.')
     # read data about activities and trackpoints
     activity_data = []
     trackpoint_data = []
@@ -97,18 +102,26 @@ def main():
                 for line in lines:
                     lat, lon, _, alt, date_days, date, time = lines[0].strip().split(',')
                     trackpoint_data.append([activity_id, lat, lon, alt, date_days, f'{date} {time}'])
+    t3 = t()
+    print(f'Processing activity and trackpoints took {t3 - t2} seconds. Total time elapsed: {t3 - t0} seconds')
     # Insert activities:
     print('Inserting activities...')
     connection.cursor.executemany('INSERT INTO Activity (id, user_id, transportation_mode, start_date_time, end_date_time) VALUES (%s, %s, %s, %s, %s)', activity_data)
     connection.commit()
-    print(len(activity_data), 'activities inserted')
+    t4 = t()
+    print(f'{len(activity_data)} activities inserted in {t4 - t3} seconds. Total time elapsed: {t4 - t0}')
 
     # Insert trackpoints:
     print('Inserting trackpoints...')
-    connection.cursor.executemany('INSERT INTO Trackpoint (activity_id, lat, lon, altitude, date_days, date_time) VALUES (%s, %s, %s, %s, %s, %s)', trackpoint_data)
-    connection.commit()
+
+    batch_size = 100000
+    for i in range(0, len(trackpoint_data), batch_size):
+        print(f'{(100*i/len(trackpoint_data)):.2f}%, {i} out of {len(trackpoint_data)} trackpoints inserted')
+        connection.cursor.executemany('INSERT INTO Trackpoint (activity_id, lat, lon, altitude, date_days, date_time) VALUES (%s, %s, %s, %s, %s, %s)', trackpoint_data[i:i+batch_size])
+        connection.commit()
+    t5 = t()
+    print(f'{len(trackpoint_data)} trackpoints inserted in {t5 - t4} seconds. Total time elapsed: {t5 - t0} seconds')
     connection.close_connection()
-    print(len(trackpoint_data), 'trackpoints inserted')
 
 if __name__ == '__main__':
     main()
