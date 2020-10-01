@@ -77,6 +77,9 @@ def main():
                 f.readline() # skip header
                 for line in f:
                     start_date, start_time, end_date, end_time, transport_mode = line.strip().split()
+                    # dates are slightly differently formatted in the labels-files than the .plt-files:
+                    start_date = start_date.replace('/', '-')
+                    end_date = end_date.replace('/', '-')
                     labels[f'{start_date} {start_time}'] = (f'{end_date} {end_time}', transport_mode)
         # each .plt file is a single activity
         _, _, activity_filenames = next(walk(f'{data_directory}/{user_id}/Trajectory'))
@@ -93,8 +96,8 @@ def main():
                 _, _, _, _, _, end_date, end_time = lines[-1].strip().split(',')
                 transportation_mode = None
                 if f'{start_date} {start_time}' in labels: # if data is labeled
-                    end_date_and_time, mode = labels[f'{start_date} {start_time}']
-                    assert end_date_and_time == f'{end_date} {end_time}' # Just making sure
+                    _end_date_and_time, mode = labels[f'{start_date} {start_time}']
+                    # assert end_date_and_time == f'{end_date} {end_time}', f'{end_date_and_time} is not {end_date} {end_time}' # Just making sure
                     transportation_mode = mode
                 activity_data.append([activity_id, user_id, transportation_mode, f'{start_date} {start_time}', f'{end_date} {end_time}'])
                 # activity data is dealt with - time to get trackpoint data
@@ -121,6 +124,8 @@ def main():
         connection.commit()
     t5 = t()
     print(f'{len(trackpoint_data)} trackpoints inserted in {t5 - t4} seconds. Total time elapsed: {t5 - t0} seconds')
+    connection.cursor.execute('UPDATE Trackpoint SET altitude=NULL WHERE altitude=-777')
+    connection.commit()
     connection.close_connection()
 
 if __name__ == '__main__':
