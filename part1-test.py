@@ -90,14 +90,16 @@ def main():
                     activity_file.readline()
                 lines = activity_file.readlines() # Doing a full read of the file might be risky
                 # but I really don't hope or believe there is any one file too big to open in memory 
-                if len(lines) >= 2500: # skip activities with more than 2500 trackpoints
+                if len(lines) > 2500: # skip activities with more than 2500 trackpoints
                     continue
                 _, _, _, _, _, start_date, start_time = lines[0].strip().split(',')
                 _, _, _, _, _, end_date, end_time = lines[-1].strip().split(',')
                 transportation_mode = None
                 if f'{start_date} {start_time}' in labels: # if data is labeled
                     _end_date_and_time, mode = labels[f'{start_date} {start_time}']
-                    if (f'{end_date}{end_time}' == lines[-1][-1]):
+
+                    end_date_assert, end_time_assert = _end_date_and_time.split(" ")
+                    if f'{end_date_assert}' == lines[-1][-2] and f'{end_time_assert}' == lines[-1][-1]:
                     # assert end_date_and_time == f'{end_date} {end_time}', f'{end_date_and_time} is not {end_date} {end_time}' # Just making sure
                         transportation_mode = mode
                 activity_data.append([activity_id, user_id, transportation_mode, f'{start_date} {start_time}', f'{end_date} {end_time}'])
