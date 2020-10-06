@@ -102,7 +102,7 @@ def main():
                 activity_data.append([activity_id, user_id, transportation_mode, f'{start_date} {start_time}', f'{end_date} {end_time}'])
                 # activity data is dealt with - time to get trackpoint data
                 for line in lines:
-                    lat, lon, _, alt, date_days, date, time = lines[0].strip().split(',')
+                    lat, lon, _, alt, date_days, date, time = line.strip().split(',')
                     trackpoint_data.append([activity_id, lat, lon, alt, date_days, f'{date} {time}'])
                 activity_id += 1
     t3 = t()
