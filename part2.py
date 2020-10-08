@@ -64,28 +64,20 @@ class Task2Program:
         else:
             return "Nope. This year is not the one with the highest recorded activites"
 
-    ## TODO: Task 2.7
     def task2_7(self):
-        query = "SELECT DISTINCT(activity_id), lat, lon FROM Activity INNER JOIN Trackpoint ON Activity.id=Trackpoint.activity_id WHERE user_id = '112' AND transportation_mode = 'walk' AND YEAR(start_date_time) = 2008 AND YEAR(end_date_time) = 2008;"
+        query = "SELECT (activity_id), lat, lon FROM Activity INNER JOIN Trackpoint ON Activity.id=Trackpoint.activity_id WHERE user_id = '112' AND transportation_mode = 'walk' AND YEAR(start_date_time) = 2008 AND YEAR(end_date_time) = 2008;"
         self.cursor.execute(query)
         result = self.cursor.fetchall()
-
         km_tot = 0 
-        km_tot_abs = 0
-
         count = 0
 
-        for line in range(1, len(result)-1):
+        for line in range(1, len(result)):
             if result[line][0] == result[line-1][0]:
-
                 curr_point = (result[line][1], result[line][2])
                 prev_point = (result[line-1][1], result[line-1][2])
                 km_tot += haversine(prev_point, curr_point, unit="km")
-            else:
-                count += 1
-                print(f'amount of different ativities?: {count}')
-        print(f'here is total km: \n {km_tot}')
 
+        print(f'The total kilometer walked by user 122 is: \n{km_tot}')
 
     def task2_8(self):
         query = "SELECT Sub.UserID, Sub.Altitude_km FROM ( SELECT Activity.user_id AS userID, SUM(CASE WHEN TP1.altitude IS NOT NULL AND TP2.altitude IS NOT NULL THEN (TP2.altitude - TP1.altitude) * 0.0003048 ELSE 0 END) AS Altitude_km FROM Trackpoint AS TP1 INNER JOIN Trackpoint AS TP2 ON TP1.activity_id=TP2.activity_id AND TP1.id+1 = TP2.id INNER JOIN Activity ON Activity.id = TP1.activity_id AND Activity.id = TP2.activity_id WHERE TP2.altitude > TP1.altitude GROUP BY Activity.user_id ) AS Sub ORDER BY Altitude_km DESC LIMIT 20;"
@@ -145,7 +137,6 @@ def main():
         print(task2program.task2_6b())
         print()
 
-        ## TODO: Task 2.7. Uncomment below when functions are made.
         print("Task 2.7:")
         task2program.task2_7()
         print()
@@ -162,10 +153,6 @@ def main():
         task2program.task2_10()
         print()
 
-        ## TODO: Task 2.11. Uncomment below when functions are made.
-        # print("Task 2.7:")
-        # task2program.task2_7()
-        # print()
        
     except Exception as e:
         print("ERROR: Failed to use database:", e)
