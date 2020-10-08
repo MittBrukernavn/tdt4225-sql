@@ -1,5 +1,6 @@
 from DbConnector import DbConnector
 from tabulate import tabulate
+from haversine import haversine, Unit
 
 
 class Task2Program:
@@ -14,8 +15,7 @@ class Task2Program:
         self.cursor.execute(query)
         results = self.cursor.fetchall()
         
-        print(tabulate(results, headers=self.cursor.column_names))
-
+        print(tabulate(results, headers=self.cursor.column_names) )
     def task2_2(self):
         query = "SELECT AVG(T.activity_count) AS 'Average activity count' FROM (SELECT user_id, COUNT(Activity.id) AS activity_count FROM Activity GROUP BY user_id) T;"
         self.cursor.execute(query)
@@ -66,21 +66,40 @@ class Task2Program:
 
     ## TODO: Task 2.7
     def task2_7(self):
-        pass
+        query = "SELECT DISTINCT(activity_id), lat, lon FROM Activity INNER JOIN Trackpoint ON Activity.id=Trackpoint.activity_id WHERE user_id = '112' AND transportation_mode = 'walk' AND YEAR(start_date_time) = 2008 AND YEAR(end_date_time) = 2008;"
+        self.cursor.execute(query)
+        result = self.cursor.fetchall()
+
+        km_tot = 0 
+        km_tot_abs = 0
+
+        count = 0
+
+        for line in range(1, len(result)-1):
+            if result[line][0] == result[line-1][0]:
+
+                curr_point = (result[line][1], result[line][2])
+                prev_point = (result[line-1][1], result[line-1][2])
+                km_tot += haversine(prev_point, curr_point, unit="km")
+            else:
+                count += 1
+                print(f'amount of different ativities?: {count}')
+        print(f'here is total km: \n {km_tot}')
+
 
     def task2_8(self):
         query = "SELECT Sub.UserID, Sub.Altitude_km FROM ( SELECT Activity.user_id AS userID, SUM(CASE WHEN TP1.altitude IS NOT NULL AND TP2.altitude IS NOT NULL THEN (TP2.altitude - TP1.altitude) * 0.0003048 ELSE 0 END) AS Altitude_km FROM Trackpoint AS TP1 INNER JOIN Trackpoint AS TP2 ON TP1.activity_id=TP2.activity_id AND TP1.id+1 = TP2.id INNER JOIN Activity ON Activity.id = TP1.activity_id AND Activity.id = TP2.activity_id WHERE TP2.altitude > TP1.altitude GROUP BY Activity.user_id ) AS Sub ORDER BY Altitude_km DESC LIMIT 20;"
         self.cursor.execute(query)
         results = self.cursor.fetchall()
 
-        print(tabulate(results, headers=self.cursor.column_names))
+        print(tabulate(results, headers=self.cursor.column_names) + "\n")
     
     def task2_9(self):
         query = "SELECT Activity.user_id, COUNT(DISTINCT(activity_id)) as `Number of illegal activities` FROM (SELECT TP1.activity_id AS activity_id, (TP2.date_days - TP1.date_days) AS minute_diff FROM Trackpoint AS TP1 INNER JOIN Trackpoint AS TP2 ON TP1.activity_id=TP2.activity_id AND TP1.id+1=TP2.id HAVING minute_diff >= 0.00347222222) AS Subtable JOIN Activity ON Activity.id = Subtable.activity_id GROUP BY Activity.user_id;"
         self.cursor.execute(query)
         results = self.cursor.fetchall()
 
-        print(tabulate(results, headers=self.cursor.column_names))
+        print(tabulate(results, headers=self.cursor.column_names) + "\n")
 
     def task2_10(self):
         # Results vary slightly depending on how much leeway you give the coordinates. 
@@ -89,7 +108,7 @@ class Task2Program:
         self.cursor.execute(query)
         results = self.cursor.fetchall()
 
-        print(tabulate(results, headers=self.cursor.column_names))
+        print(tabulate(results, headers=self.cursor.column_names) + "\n")
 
     ## TODO: Task 2.11
     def task2_11(self):
@@ -100,41 +119,53 @@ def main():
         task2program = Task2Program()
         print("Task 2.1:")
         task2program.task2_1()
+        print()
         
         print("Task 2.2:")
         task2program.task2_2()
+        print()
 
         print("Task 2.3:")
         task2program.task2_3()
+        print()
 
         print("Task 2.4:")
         task2program.task2_4()
+        print()
         
         print("Task 2.5:")
         task2program.task2_5()
+        print()
         
         print("Task 2.6a:")
         print("Year with most activities: ", task2program.task2_6a())
+        print()
 
         print("Task 2.6b:")
         print(task2program.task2_6b())
+        print()
 
         ## TODO: Task 2.7. Uncomment below when functions are made.
-        # print("Task 2.7:")
-        # task2program.task2_7()
+        print("Task 2.7:")
+        task2program.task2_7()
+        print()
         
         print("Task 2.8:")
         task2program.task2_8()
+        print()
 
         print("Task 2.9:")
         task2program.task2_9()
+        print()
         
         print("Task 2.10:")
         task2program.task2_10()
+        print()
 
         ## TODO: Task 2.11. Uncomment below when functions are made.
         # print("Task 2.7:")
         # task2program.task2_7()
+        # print()
        
     except Exception as e:
         print("ERROR: Failed to use database:", e)
