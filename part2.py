@@ -63,7 +63,8 @@ class Task2Program:
             SELECT transportation_mode, COUNT(id) as `Number of activities` 
             FROM Activity 
             WHERE transportation_mode IS NOT NULL 
-            GROUP BY transportation_mode;
+            GROUP BY transportation_mode
+            ORDER BY `Number of activities` DESC;
             """
         self.cursor.execute(query)
         results = self.cursor.fetchall()
