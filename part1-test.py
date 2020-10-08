@@ -99,7 +99,8 @@ def main():
                     _end_date_and_time, mode = labels[f'{start_date} {start_time}']
 
                     end_date_assert, end_time_assert = _end_date_and_time.split(" ")
-                    if f'{end_date_assert}' == lines[-1][-2] and f'{end_time_assert}' == lines[-1][-1]:
+                    lines_assert = lines[-1].strip().split(",")
+                    if f'{end_date_assert}' == lines_assert[-2] and f'{end_time_assert}' == lines_assert[-1]:
                     # assert end_date_and_time == f'{end_date} {end_time}', f'{end_date_and_time} is not {end_date} {end_time}' # Just making sure
                         transportation_mode = mode
                 activity_data.append([activity_id, user_id, transportation_mode, f'{start_date} {start_time}', f'{end_date} {end_time}'])
