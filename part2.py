@@ -102,9 +102,45 @@ class Task2Program:
 
         print(tabulate(results, headers=self.cursor.column_names) + "\n")
 
+
     ## TODO: Task 2.11
     def task2_11(self):
-        pass
+        # TODO: Tiebreaker needed
+        query = '''
+            SELECT TransportationModesPerUser.user_id, transportation_mode 
+            FROM (
+                SELECT user_id, COUNT(id) AS times_used, transportation_mode
+                FROM Activity
+                WHERE transportation_mode IS NOT NULL
+                GROUP BY user_id, transportation_mode
+            ) AS TransportationModesPerUser 
+            INNER JOIN (
+                SELECT user_id, MAX(times_used) AS times_used
+                FROM (
+                    SELECT user_id, COUNT(id) AS times_used
+                    FROM Activity
+                    WHERE transportation_mode IS NOT NULL
+                    GROUP BY user_id, transportation_mode
+                ) AS TransportationModesPerUserInner
+            GROUP BY user_id
+            ) AS MaxTransportationModePerUser
+            ON TransportationModesPerUser.times_used=MaxTransportationModePerUser.times_used
+            AND TransportationModesPerUser.user_id = MaxTransportationModePerUser.user_id;
+            '''
+        self.cursor.execute(query)
+        results = self.cursor.fetchall()
+
+        # Not the best way to check for ties but the result from the query is very small so it has only a little performance impact
+        result_no_ties = []
+        temp = []
+        for line in results:
+            if line[0] not in temp:
+                temp.append(line[0])
+                result_no_ties.append(line)
+
+        print(tabulate(result_no_ties, headers=self.cursor.column_names) + "\n")
+
+
 
 def main():
     try:
@@ -141,16 +177,20 @@ def main():
         task2program.task2_7()
         print()
         
-        print("Task 2.8:")
-        task2program.task2_8()
-        print()
+        # print("Task 2.8:")
+        # task2program.task2_8()
+        # print()
 
-        print("Task 2.9:")
-        task2program.task2_9()
-        print()
+        # print("Task 2.9:")
+        # task2program.task2_9()
+        # print()
         
-        print("Task 2.10:")
-        task2program.task2_10()
+        # print("Task 2.10:")
+        # task2program.task2_10()
+        # print()
+
+        print("Task 2.11")
+        task2program.task2_11()
         print()
 
        
