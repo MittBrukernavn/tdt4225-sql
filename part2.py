@@ -196,7 +196,7 @@ class Task2Program:
                     WHERE transportation_mode IS NOT NULL
                     GROUP BY user_id, transportation_mode
                 ) AS TransportationModesPerUserInner
-            GROUP BY user_id
+                GROUP BY user_id
             ) AS MaxTransportationModePerUser
             ON TransportationModesPerUser.times_used=MaxTransportationModePerUser.times_used
             AND TransportationModesPerUser.user_id = MaxTransportationModePerUser.user_id;
